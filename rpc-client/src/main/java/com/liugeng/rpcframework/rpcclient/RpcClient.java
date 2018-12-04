@@ -33,7 +33,8 @@ public class RpcClient {
         this.rpcServerName = rpcServerName;
     }
 
-    public RpcResponsePacket send(RpcRequestPacket requestPacket) {
+    public RpcResponsePacket send(RpcRequestPacket requestPacket, long timeOut) {
+        long cancelTime = System.currentTimeMillis() + timeOut;
         Channel channel = startConnect();
         if (channel != null) {
             logger.info("rpc connection is built successfully !");
@@ -51,15 +52,19 @@ public class RpcClient {
                     if (!requestPacket.getRequestId().equals(responsePacket.getRequestId())) {
                         throw new RpcFrameworkException("response id is not the same with request, ignore this response !");
                     }
+                    if (responsePacket.isError()) {
+                        throw responsePacket.getError();
+                    }
                     return responsePacket;
+                } else if (System.currentTimeMillis() > cancelTime) {
+                    throw new RpcFrameworkException("rpc request timeout, cancel this connection !");
                 }
             }
-        } catch (InterruptedException e) {
-            throw new RpcFrameworkException("exception during send request to rpc server", e);
+        } catch (Throwable e) {
+            throw new RpcFrameworkException("exception during rpc request: " + requestPacket.getRequestId(), e);
         } finally {
-            workerGroup.shutdownGracefully().addListener(future -> {
-                logger.info("rpc connection is closed.");
-            });
+            workerGroup.shutdownGracefully();
+            channel.close().addListener(future -> logger.info("rpc connection is closed."));
         }
     }
 

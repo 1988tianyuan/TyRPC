@@ -11,7 +11,7 @@ import java.lang.reflect.Proxy;
 public class RpcProxy {
 
     private static Logger logger = LoggerFactory.getLogger(RpcProxy.class);
-    private String rpcServerName;
+    private final String rpcServerName;
     private final ServiceDiscovery serviceDiscovery;
 
     public RpcProxy(String rpcServerName, ServiceDiscovery serviceDiscovery) {

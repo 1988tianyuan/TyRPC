@@ -75,7 +75,12 @@ public class RpcServer {
     private void serviceRegistry() {
         Preconditions.checkNotNull(serviceRegister, "serviceRegister should not be null !");
         serviceRegister.register(rpcAddress);
-        logger.info("服务注册成功, 服务地址：{}", rpcAddress);
+        for(;;) {
+            if (serviceRegister.isConnect()) {
+                logger.info("服务注册成功！地址：{}", rpcAddress);
+                break;
+            }
+        }
     }
 
     public void shutDown() {

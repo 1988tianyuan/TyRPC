@@ -13,21 +13,32 @@ import org.slf4j.LoggerFactory;
 
 public class ServiceRegister {
 
-    private String zkAddress;
+    private final String zkAddress;
     private final RetryPolicy retryPolicy;
     private final CuratorFramework zkClient;
     private final String serviceName;
-    private static Logger logger = LoggerFactory.getLogger(ServiceRegister.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServiceRegister.class);
+    private volatile boolean isConnect = false;
 
     public ServiceRegister(String zkAddress, String serviceName) {
         this.zkAddress = zkAddress;
         this.serviceName = "/" + serviceName;
         this.retryPolicy = new ExponentialBackoffRetry(1000, 3);
         this.zkClient = CuratorFrameworkFactory.newClient(zkAddress, retryPolicy);
-        this.zkClient.start();
     }
 
-    public void register(String serviceAddress) {
+    public void register(final String serviceAddress) {
+        this.zkClient.start();
+        this.zkClient.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
+            boolean isConnect = connectionState.isConnected();
+            if (isConnect) {
+                registerService(serviceAddress);
+                this.isConnect = true;
+            }
+        });
+    }
+
+    private void registerService(String serviceAddress) {
         Preconditions.checkNotNull(serviceName, "servicePath should not be null !");
         Preconditions.checkNotNull(zkClient, "zkClient is not be initialized !");
         String servicePath = serviceName + "/" + serviceAddress;
@@ -50,7 +61,7 @@ public class ServiceRegister {
     }
 
 
-
-
-
+    public boolean isConnect() {
+        return isConnect;
+    }
 }
