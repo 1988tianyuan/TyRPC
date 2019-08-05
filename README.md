@@ -1,2 +1,2 @@
 # RpcFrameworkDemo
-rpc framework based on netty and zookeeper
+Rpc framework based on Netty and Zookeeper

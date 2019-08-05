@@ -50,6 +50,8 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+		<!-- rpc服务相关依赖 -->
 		<dependency>
 			<groupId>com.liugeng</groupId>
 			<artifactId>rpc-service-interface</artifactId>
