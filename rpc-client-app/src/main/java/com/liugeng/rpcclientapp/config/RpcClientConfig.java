@@ -16,13 +16,8 @@ public class RpcClientConfig {
     private String serviceName;
 
     @Bean
-    public ServiceDiscovery serviceDiscovery() {
-        return new ServiceDiscovery(zkAddress);
+    public RpcProxy rpcProxy() {
+        ServiceDiscovery discovery = new ServiceDiscovery(zkAddress);
+        return new RpcProxy(serviceName, discovery);
     }
-
-    @Bean
-    public RpcProxy rpcProxy(ServiceDiscovery serviceDiscovery) {
-        return new RpcProxy(serviceName, serviceDiscovery);
-    }
-
 }
