@@ -1,7 +1,8 @@
-package com.liugeng.rpcframework.rpcclient;
+package com.liugeng.rpcframework.rpcclient.client;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,27 +15,37 @@ import com.liugeng.rpcframework.rpcprotocal.model.RpcRequestPacket;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcResponsePacket;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
-public class RpcClient {
-    private static Logger logger = LoggerFactory.getLogger(RpcClient.class);
+public class DefaultRpcClient implements RpcClient {
+    private static Logger logger = LoggerFactory.getLogger(DefaultRpcClient.class);
     private static final int MAX_RETRY = 5;
     private String rpcServerName;
     private final ServiceDiscovery serviceDiscovery;
     private RpcResponsePacket responsePacket;
     private NioEventLoopGroup workerGroup;
+    private int timeOut = 5000;
 
-    public RpcClient(String rpcServerName, ServiceDiscovery serviceDiscovery) {
+    public DefaultRpcClient(String rpcServerName, ServiceDiscovery serviceDiscovery) {
         this.serviceDiscovery = serviceDiscovery;
         this.rpcServerName = rpcServerName;
     }
-
-    public RpcResponsePacket send(RpcRequestPacket requestPacket, long timeOut) {
+    
+    @Override
+    public CompletableFuture<RpcResponsePacket> asyncSend(RpcRequestPacket requestPacket) {
+        
+    }
+    
+    @Override
+    public RpcResponsePacket send(RpcRequestPacket requestPacket) {
         long cancelTime = System.currentTimeMillis() + timeOut;
         Channel channel = startConnect();
         if (channel != null) {
@@ -77,22 +88,22 @@ public class RpcClient {
         this.workerGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.channel(NioSocketChannel.class)
-                 .group(workerGroup)
-                 .option(ChannelOption.SO_KEEPALIVE, true)
-                 .option(ChannelOption.TCP_NODELAY, true)
-                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                 .handler(new ChannelInitializer<NioSocketChannel>() {
-                     @Override
-                     protected void initChannel(NioSocketChannel ch) throws Exception {
-                         ch.pipeline().addLast(new RpcCodecHandler())
-                                      .addLast(new SimpleChannelInboundHandler<RpcResponsePacket>() {
-                                          @Override
-                                          protected void channelRead0(ChannelHandlerContext ctx, RpcResponsePacket packet) throws Exception {
-                                              responsePacket = packet;
-                                          }
-                                      });
-                     }
-                 });
+             .group(workerGroup)
+             .option(ChannelOption.SO_KEEPALIVE, true)
+             .option(ChannelOption.TCP_NODELAY, true)
+             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+             .handler(new ChannelInitializer<NioSocketChannel>() {
+                 @Override
+                 protected void initChannel(NioSocketChannel ch) throws Exception {
+                     ch.pipeline().addLast(new RpcCodecHandler())
+                                  .addLast(new SimpleChannelInboundHandler<RpcResponsePacket>() {
+                                      @Override
+                                      protected void channelRead0(ChannelHandlerContext ctx, RpcResponsePacket packet) throws Exception {
+                                          responsePacket = packet;
+                                      }
+                                  });
+                 }
+             });
         return connect(bootstrap, hostAndPort, MAX_RETRY);
     }
 

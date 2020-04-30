@@ -29,8 +29,7 @@ public class ServiceDiscovery {
         }
     }
 
-
-
-
-
+    public void finish() {
+        zkClient.close();   
+    }
 }
