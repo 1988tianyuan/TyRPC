@@ -24,7 +24,7 @@ public class ProxyInvocationHandler implements InvocationHandler {
         requestPacket.setMethodName(method.getName());
         requestPacket.setParamTypes(method.getParameterTypes());
         requestPacket.setParams(args);
-        RpcResponsePacket responsePacket = rpcClient.send(requestPacket, 5000);
+        RpcResponsePacket responsePacket = rpcClient.send(requestPacket);
         return responsePacket.getResult();
     }
 }

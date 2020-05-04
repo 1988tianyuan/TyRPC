@@ -7,4 +7,6 @@ package com.liugeng.rpcframework.rpcclient.network.connection;
 public interface ConnectionManager<T> {
 	
 	Connection<T> getConnection(String address);
+
+	void release(Connection<T> connection, String address);
 }

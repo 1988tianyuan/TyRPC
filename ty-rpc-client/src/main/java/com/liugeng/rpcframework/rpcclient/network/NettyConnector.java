@@ -24,14 +24,14 @@ public class NettyConnector implements NetworkConnector {
 	private NioEventLoopGroup workerGroup;
 	
 	private ConnectionManager<Channel> connectionManageStrategy;
+
+	private ResponseHolder responseHolder;
 	
-	public NettyConnector(ConnectionManager<Channel> connectionManageStrategy) {
-		this(new NioEventLoopGroup(), connectionManageStrategy);
-	}
-	
-	public NettyConnector(NioEventLoopGroup workerGroup, ConnectionManager<Channel> connectionManageStrategy) {
+	public NettyConnector(NioEventLoopGroup workerGroup,
+						  ConnectionManager<Channel> connectionManageStrategy, ResponseHolder responseHolder) {
 		this.workerGroup = workerGroup;
 		this.connectionManageStrategy = connectionManageStrategy;
+		this.responseHolder = responseHolder;
 	}
 	
 	@Override
@@ -41,28 +41,17 @@ public class NettyConnector implements NetworkConnector {
 	
 	@Override
 	public RpcFutureResponse asyncSend(String address, RpcRequestPacket request) {
-		Channel channel = connectionManageStrategy.getConnection(address).getWrappedConnection();
-		RpcFutureResponse futureResponse = new NettyFutureResponse(request.getRequestId());
+		RpcFutureResponse futureResponse = new RpcFutureResponse(request.getRequestId(), responseHolder);
+		Connection<Channel> connection = null;
 		try {
-			channel.writeAndFlush(request).sync();
+			connection = connectionManageStrategy.getConnection(address);
+			connection.getWrappedConnection().writeAndFlush(request).sync();
 		} catch (Exception e) {
-			log.warn("Failed to send request to address:{}", address, e);
-			futureResponse.setDone(true);
+			futureResponse.setSuccess(false);
 			futureResponse.setError(e);
 		}
+		connectionManageStrategy.release(connection, address);
 		return futureResponse;
-	}
-	
-	private static class NettyFutureResponse extends RpcFutureResponse {
-		
-		public NettyFutureResponse(String requestId) {
-			super(requestId);
-		}
-		
-		@Override
-		public RpcResponsePacket getResponse(long time, TimeUnit timeUnit) {
-			
-		}
 	}
 	
 	@Override

@@ -1,9 +1,16 @@
 package com.liugeng.rpcframework.rpcclient.client;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
+import com.liugeng.rpcframework.rpcclient.network.ConnectorFactory;
+import com.liugeng.rpcframework.rpcclient.network.NettyConnector;
+import com.liugeng.rpcframework.rpcclient.network.NetworkConnector;
+import com.liugeng.rpcframework.rpcclient.network.RpcFutureResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,99 +34,47 @@ import io.netty.util.concurrent.GenericFutureListener;
 
 public class DefaultRpcClient implements RpcClient {
     private static Logger logger = LoggerFactory.getLogger(DefaultRpcClient.class);
-    private static final int MAX_RETRY = 5;
     private String rpcServerName;
     private final ServiceDiscovery serviceDiscovery;
-    private RpcResponsePacket responsePacket;
-    private NioEventLoopGroup workerGroup;
-    private int timeOut = 5000;
+    private NetworkConnector connector;
+    private long timeOut = 10;
 
     public DefaultRpcClient(String rpcServerName, ServiceDiscovery serviceDiscovery) {
         this.serviceDiscovery = serviceDiscovery;
         this.rpcServerName = rpcServerName;
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(NettyConnector.USE_POOL, true);
+        this.connector = ConnectorFactory.newNettyConnector(configs);
     }
     
     @Override
-    public CompletableFuture<RpcResponsePacket> asyncSend(RpcRequestPacket requestPacket) {
-        
-    }
-    
-    @Override
-    public RpcResponsePacket send(RpcRequestPacket requestPacket) {
-        long cancelTime = System.currentTimeMillis() + timeOut;
-        Channel channel = startConnect();
-        if (channel != null) {
-            logger.info("rpc connection is built successfully !");
-        } else {
-            throw new RpcFrameworkException("build rpc connection failed, finish this request !");
-        }
-        try {
-            channel.writeAndFlush(requestPacket).sync();
-            logger.info("send rpc request to rpc server, request class: {}, request method: {}, request id: {}",
-                    requestPacket.getClassName(), requestPacket.getMethodName(), requestPacket.getRequestId());
-            for (;;) {
-                if (this.responsePacket != null) {
-                    logger.info("received response, id: {}", responsePacket.getRequestId());
-                    channel.close();
-                    if (!requestPacket.getRequestId().equals(responsePacket.getRequestId())) {
-                        throw new RpcFrameworkException("response id is not the same with request, ignore this response !");
-                    }
-                    if (responsePacket.isError()) {
-                        throw responsePacket.getError();
-                    }
-                    return responsePacket;
-                } else if (System.currentTimeMillis() > cancelTime) {
-                    throw new RpcFrameworkException("rpc request timeout, cancel this connection !");
-                }
-            }
-        } catch (Throwable e) {
-            throw new RpcFrameworkException("exception during rpc request: " + requestPacket.getRequestId(), e);
-        } finally {
-            workerGroup.shutdownGracefully();
-            channel.close().addListener(future -> logger.info("rpc connection is closed."));
-        }
+    public RpcFutureResponse asyncSend(RpcRequestPacket requestPacket) {
+        String hostAndPort = chooseAddress();
+        return connector.asyncSend(hostAndPort, requestPacket);
     }
 
-    private Channel startConnect() {
-        List<String> rpcServerAddressList = serviceDiscovery.discovery(rpcServerName);
-        Preconditions.checkArgument(!rpcServerAddressList.isEmpty(), "rpc server: {} is not available now !", rpcServerName);
-        String hostAndPort = chooseAddress(rpcServerAddressList);
-        logger.info("rpc server address: " + hostAndPort);
-        this.workerGroup = new NioEventLoopGroup();
-        Bootstrap bootstrap = new Bootstrap();
-        bootstrap.channel(NioSocketChannel.class)
-             .group(workerGroup)
-             .option(ChannelOption.SO_KEEPALIVE, true)
-             .option(ChannelOption.TCP_NODELAY, true)
-             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-             .handler(new ChannelInitializer<NioSocketChannel>() {
-                 @Override
-                 protected void initChannel(NioSocketChannel ch) throws Exception {
-                     ch.pipeline().addLast(new RpcCodecHandler())
-                                  .addLast(new SimpleChannelInboundHandler<RpcResponsePacket>() {
-                                      @Override
-                                      protected void channelRead0(ChannelHandlerContext ctx, RpcResponsePacket packet) throws Exception {
-                                          responsePacket = packet;
-                                      }
-                                  });
-                 }
-             });
-        return connect(bootstrap, hostAndPort, MAX_RETRY);
-    }
-
-    private String chooseAddress(List<String> addressList) {
+    private String chooseAddress() {
+        List<String> addressList = serviceDiscovery.discovery(rpcServerName);
+        Preconditions.checkArgument(!addressList.isEmpty(),
+                "rpc server: {} is not available now !", rpcServerName);
         int size = addressList.size();
         int index = new Random().nextInt(size);
         return addressList.get(index);
     }
-
-    private Channel connect(Bootstrap bootstrap, String hostAndPort, int retry){
-        String host = hostAndPort.split(":")[0];
-        int port = Integer.parseInt(hostAndPort.split(":")[1]);
+    
+    @Override
+    public RpcResponsePacket send(RpcRequestPacket requestPacket) {
         try {
-            return bootstrap.connect(host, port).sync().channel();
-        } catch (InterruptedException e) {
-            throw new RpcFrameworkException("exception during connect to rpc server", e);
+            String hostAndPort = chooseAddress();
+            RpcFutureResponse futureResponse = connector.asyncSend(hostAndPort, requestPacket);
+            if (!futureResponse.isSuccess() && futureResponse.getError() != null) {
+                throw futureResponse.getError();
+            }
+            logger.info("send rpc request to rpc server, request class: {}, request method: {}, request id: {}",
+                    requestPacket.getClassName(), requestPacket.getMethodName(), requestPacket.getRequestId());
+            return futureResponse.getResponse(timeOut, TimeUnit.SECONDS);
+        } catch (Throwable e) {
+            throw new RpcFrameworkException("exception during rpc request: " + requestPacket.getRequestId(), e);
         }
     }
 }
