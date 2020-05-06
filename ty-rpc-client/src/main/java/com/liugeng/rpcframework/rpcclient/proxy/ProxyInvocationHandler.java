@@ -1,4 +1,4 @@
-package com.liugeng.rpcframework.rpcclient;
+package com.liugeng.rpcframework.rpcclient.proxy;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

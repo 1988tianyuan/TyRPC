@@ -1,13 +1,16 @@
-package com.liugeng.rpcframework.registry;
+package com.liugeng.rpcframework.rpcclient.client.service;
 
-import com.google.common.base.Preconditions;
-import com.liugeng.rpcframework.exception.RpcFrameworkException;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
-import java.util.List;
+import com.google.common.base.Preconditions;
+import com.liugeng.rpcframework.exception.RpcFrameworkException;
+import com.liugeng.rpcframework.rpcclient.client.RpcInstance;
 
 public class ServiceDiscovery {
 
@@ -19,11 +22,13 @@ public class ServiceDiscovery {
         this.zkClient.start();
     }
 
-    public List<String> discovery(String serviceName) {
+    public List<RpcInstance> discovery(String serviceName) {
         String servicePath = "/" + serviceName;
         try {
             Preconditions.checkNotNull(zkClient.checkExists().forPath(servicePath), "your request service doesn't exist !");
-            return zkClient.getChildren().forPath(servicePath);
+            List<String> addressList = zkClient.getChildren().forPath(servicePath);
+            Preconditions.checkArgument(!addressList.isEmpty(), "rpc server: {} is not available now !", serviceName);
+            return addressList.stream().map(RpcInstance::new).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RpcFrameworkException("exception during discovery service: " + serviceName, e);
         }
