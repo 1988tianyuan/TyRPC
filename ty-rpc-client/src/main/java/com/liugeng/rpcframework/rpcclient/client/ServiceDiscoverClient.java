@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.liugeng.rpcframework.rpcclient.client.lb.LoadBalancerType;
+import com.liugeng.rpcframework.rpcclient.client.lb.RandomStrategy;
 import com.liugeng.rpcframework.rpcclient.client.service.ServiceDiscovery;
 import com.liugeng.rpcframework.rpcclient.client.lb.LoadBalancerStrategy;
 
@@ -20,7 +21,7 @@ public class ServiceDiscoverClient extends AbstractRpcClient {
     public ServiceDiscoverClient(String rpcServiceName, ServiceDiscovery serviceDiscovery, LoadBalancerType lbType) {
         this.serviceDiscovery = serviceDiscovery;
         this.rpcServiceName = rpcServiceName;
-        this.lbStrategy = lbType.getLoadBalancerStrategy();
+        this.lbStrategy = lbType != null ? lbType.getLoadBalancerStrategy() : new RandomStrategy();
     }
 
     @Override

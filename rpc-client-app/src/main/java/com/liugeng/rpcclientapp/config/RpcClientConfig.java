@@ -32,9 +32,8 @@ public class RpcClientConfig {
 
     @Bean
     public ExampleService exampleService(ServiceDiscovery discovery) {
-        LoadBalancerType lbType = loadBalancerType != null ? loadBalancerType : LoadBalancerType.RANDOM;
         RpcProxy<ExampleService> exampleServiceProxy = 
-            ProxyFactory.newProxy(serviceName, discovery, ExampleService.class, lbType);
+            ProxyFactory.newProxy(serviceName, discovery, ExampleService.class, loadBalancerType);
         return exampleServiceProxy.proxyInstance();
     }
     
