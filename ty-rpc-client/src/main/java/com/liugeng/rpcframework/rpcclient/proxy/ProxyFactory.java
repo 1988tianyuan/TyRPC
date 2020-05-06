@@ -11,4 +11,8 @@ public class ProxyFactory {
 	public static <T> RpcProxy<T> newProxy(String serviceName, ServiceDiscovery discovery, Class<T> proxyType) {
 		return new RpcProxy<>(serviceName, discovery, proxyType);
 	}
+	
+	public static <T> RpcProxy<T> newProxy(String serviceAddress, Class<T> proxyType) {
+		return new RpcProxy<>(serviceAddress, proxyType);
+	}
 }

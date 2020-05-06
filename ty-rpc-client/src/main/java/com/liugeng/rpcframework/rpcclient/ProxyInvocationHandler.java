@@ -4,15 +4,15 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-import com.liugeng.rpcframework.rpcclient.client.DefaultRpcClient;
+import com.liugeng.rpcframework.rpcclient.client.RpcClient;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcRequestPacket;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcResponsePacket;
 
 public class ProxyInvocationHandler implements InvocationHandler {
 
-    private final DefaultRpcClient rpcClient;
+    private final RpcClient rpcClient;
 
-    public ProxyInvocationHandler(DefaultRpcClient rpcClient) {
+    public ProxyInvocationHandler(RpcClient rpcClient) {
         this.rpcClient = rpcClient;
     }
 
