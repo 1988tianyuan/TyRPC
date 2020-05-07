@@ -10,5 +10,6 @@ public interface Serializer {
 
     //反序列化
     <T> T deserialize(Class<T> clazz, byte[] bytes);
-
+    
+    SerializerType getType();
 }

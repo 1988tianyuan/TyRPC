@@ -10,6 +10,7 @@ import com.liugeng.rpcframework.registry.ServiceRegister;
 import com.liugeng.rpcframework.rpcprotocal.codec.RpcCodecHandler;
 import com.liugeng.rpcframework.rpcprotocal.codec.Spliter;
 import com.liugeng.rpcframework.rpcprotocal.handler.RpcRequestHandler;
+import com.liugeng.rpcframework.rpcprotocal.serializer.SerializerType;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -59,7 +60,7 @@ public class RpcServer {
                            protected void initChannel(NioSocketChannel channel) throws Exception {
                                ChannelPipeline pipeline = channel.pipeline();
                                pipeline.addLast(new Spliter());
-                               pipeline.addLast(new RpcCodecHandler());
+                               pipeline.addLast(new RpcCodecHandler(SerializerType.JSON.getSerializer()));
                                pipeline.addLast(new RpcRequestHandler(serviceMap));
                            }
                        });

@@ -11,6 +11,7 @@ import com.liugeng.rpcframework.rpcclient.client.lb.LoadBalancerType;
 import com.liugeng.rpcframework.rpcclient.client.lb.RandomStrategy;
 import com.liugeng.rpcframework.rpcclient.client.service.ServiceDiscovery;
 import com.liugeng.rpcframework.rpcclient.client.lb.LoadBalancerStrategy;
+import com.liugeng.rpcframework.rpcprotocal.serializer.SerializerType;
 
 public class ServiceDiscoverClient extends AbstractRpcClient {
     private static Logger logger = LoggerFactory.getLogger(ServiceDiscoverClient.class);
@@ -18,7 +19,9 @@ public class ServiceDiscoverClient extends AbstractRpcClient {
     private final ServiceDiscovery serviceDiscovery;
     private final LoadBalancerStrategy lbStrategy;
 
-    public ServiceDiscoverClient(String rpcServiceName, ServiceDiscovery serviceDiscovery, LoadBalancerType lbType) {
+    public ServiceDiscoverClient(String rpcServiceName, ServiceDiscovery serviceDiscovery, 
+        LoadBalancerType lbType, SerializerType serializerType) {
+        super(serializerType.getSerializer());
         this.serviceDiscovery = serviceDiscovery;
         this.rpcServiceName = rpcServiceName;
         this.lbStrategy = lbType != null ? lbType.getLoadBalancerStrategy() : new RandomStrategy();

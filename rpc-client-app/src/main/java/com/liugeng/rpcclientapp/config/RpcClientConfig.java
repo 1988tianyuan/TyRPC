@@ -8,6 +8,7 @@ import com.liugeng.rpcframework.rpcclient.client.lb.LoadBalancerType;
 import com.liugeng.rpcframework.rpcclient.client.service.ServiceDiscovery;
 import com.liugeng.rpcframework.rpcclient.proxy.ProxyFactory;
 import com.liugeng.rpcframework.rpcclient.proxy.RpcProxy;
+import com.liugeng.rpcframework.rpcprotocal.serializer.SerializerType;
 import com.liugeng.rpcframework.service.ExampleService;
 
 @Configuration
@@ -33,13 +34,14 @@ public class RpcClientConfig {
     @Bean
     public ExampleService exampleService(ServiceDiscovery discovery) {
         RpcProxy<ExampleService> exampleServiceProxy = 
-            ProxyFactory.newProxy(serviceName, discovery, ExampleService.class, loadBalancerType);
+            ProxyFactory.newProxy(serviceName, discovery, ExampleService.class, loadBalancerType, SerializerType.JSON);
         return exampleServiceProxy.proxyInstance();
     }
     
 //    @Bean
     public ExampleService exampleService() {
-        RpcProxy<ExampleService> exampleServiceProxy = ProxyFactory.newProxy(address, ExampleService.class);
+        RpcProxy<ExampleService> exampleServiceProxy = 
+            ProxyFactory.newProxy(address, ExampleService.class, SerializerType.JSON);
         return exampleServiceProxy.proxyInstance();
     }
 }

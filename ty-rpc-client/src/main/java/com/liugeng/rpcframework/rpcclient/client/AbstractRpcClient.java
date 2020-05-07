@@ -13,15 +13,16 @@ import com.liugeng.rpcframework.rpcclient.network.NetworkConnectors;
 import com.liugeng.rpcframework.rpcclient.network.RpcFutureResponse;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcRequestPacket;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcResponsePacket;
+import com.liugeng.rpcframework.rpcprotocal.serializer.Serializer;
 
 public abstract class AbstractRpcClient implements RpcClient {
     private static Logger logger = LoggerFactory.getLogger(AbstractRpcClient.class);
     private NetworkConnector connector;
     private long timeOut = 10;
 
-    public AbstractRpcClient() {
+    public AbstractRpcClient(Serializer serializer) {
         Map<String, Object> configs = new HashMap<>();
-        this.connector = NetworkConnectors.newNettyConnector(configs);
+        this.connector = NetworkConnectors.newNettyConnector(configs, serializer);
     }
     
     @Override

@@ -20,4 +20,9 @@ public class JsonSerializer implements Serializer {
     public <T> T deserialize(Class<T> clazz, byte[] bytes) {
         return JSON.parseObject(bytes, clazz);
     }
+    
+    @Override
+    public SerializerType getType() {
+        return SerializerType.JSON;
+    }
 }

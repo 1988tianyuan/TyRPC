@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import com.liugeng.rpcframework.rpcprotocal.codec.RpcCodecHandler;
 import com.liugeng.rpcframework.rpcprotocal.codec.Spliter;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcResponsePacket;
+import com.liugeng.rpcframework.rpcprotocal.serializer.Serializer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -17,8 +18,11 @@ public class NettyChannelInit implements Consumer<Channel> {
 	
 	private ResponseHolder responseHolder;
 	
-	public NettyChannelInit(ResponseHolder responseHolder) {
+	private Serializer serializer;
+	
+	public NettyChannelInit(ResponseHolder responseHolder, Serializer serializer) {
 		this.responseHolder = responseHolder;
+		this.serializer = serializer;
 	}
 	
 	@Override
@@ -26,7 +30,7 @@ public class NettyChannelInit implements Consumer<Channel> {
 		channel
 			.pipeline()
 			.addLast(new Spliter())
-			.addLast(new RpcCodecHandler())
+			.addLast(new RpcCodecHandler(serializer))
 			.addLast(new SimpleChannelInboundHandler<RpcResponsePacket>() {
 				@Override
 				protected void channelRead0(ChannelHandlerContext ctx, RpcResponsePacket packet) {

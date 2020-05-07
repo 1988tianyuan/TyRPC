@@ -2,7 +2,6 @@ package com.liugeng.rpcframework.rpcprotocal.serializer;
 
 import java.util.Objects;
 
-import com.liugeng.rpcframework.exception.RpcFrameworkException;
 import com.liugeng.rpcframework.rpcprotocal.serializer.impl.JsonSerializer;
 
 /**
@@ -11,15 +10,15 @@ import com.liugeng.rpcframework.rpcprotocal.serializer.impl.JsonSerializer;
  */
 public enum SerializerType {
 	
-	JSON((byte)1, JsonSerializer.class);
+	JSON((byte)1, new JsonSerializer());
 	
 	private byte sequence;
 	
-	private Class<? extends Serializer> serializerClazz;
+	private Serializer serializer;
 	
-	SerializerType(byte sequence, Class<? extends Serializer> serializerClazz) {
+	SerializerType(byte sequence, Serializer serializer) {
 		this.sequence = sequence;
-		this.serializerClazz = serializerClazz;
+		this.serializer = serializer;
 	}
 	
 	public byte getSequence() {
@@ -27,23 +26,15 @@ public enum SerializerType {
 	}
 	
 	public static Serializer instance(byte seq) {
-		try {
-			for (SerializerType type : values()) {
-				if (Objects.equals(seq, type.getSequence())) {
-					return type.serializerClazz.newInstance();
-				}
+		for (SerializerType type : values()) {
+			if (Objects.equals(seq, type.getSequence())) {
+				return type.serializer;
 			}
-		} catch (Exception e) {
-			throw new RpcFrameworkException(e);
 		}
 		return null;
 	}
 	
 	public Serializer getSerializer() {
-		try {
-			return serializerClazz.newInstance();
-		} catch (Exception e) {
-			throw new RpcFrameworkException(e);	
-		}
+		return serializer;
 	}
 }
