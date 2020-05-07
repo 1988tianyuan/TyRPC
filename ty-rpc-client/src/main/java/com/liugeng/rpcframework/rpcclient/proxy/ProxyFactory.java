@@ -12,7 +12,10 @@ public class ProxyFactory {
 	
 	public static <T> RpcProxy<T> newProxy(String serviceName, ServiceDiscovery discovery, Class<T> proxyType,
 		LoadBalancerType lbType, SerializerType serializerType) {
-		return new RpcProxy<>(serviceName, discovery, proxyType, lbType, serializerType);
+		RpcProxy<T> proxy = new RpcProxy<>();
+		
+		
+		
 	}
 	
 	public static <T> RpcProxy<T> newProxy(String serviceAddress, Class<T> proxyType, SerializerType serializerType) {

@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import com.liugeng.rpcframework.rpcclient.network.NetworkConnector;
 import com.liugeng.rpcframework.rpcclient.network.RpcFutureResponse;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcRequestPacket;
-import com.liugeng.rpcframework.rpcprotocal.model.RpcResponsePacket;
 import io.netty.channel.Channel;
 
 /**
@@ -29,21 +28,17 @@ public class NettyConnector implements NetworkConnector {
 	
 	@Override
 	public RpcFutureResponse asyncSend(String address, RpcRequestPacket request) {
-		RpcFutureResponse futureResponse = new NettyFutureResponse(request.getRequestId(), responseHolder);
+		RpcFutureResponse futureResponse = new RpcFutureResponse(request.getRequestId(), responseHolder);
 		try {
 			Channel channel = connectionManageStrategy.getConnection(address);
 			channel.writeAndFlush(request).sync();
 			connectionManageStrategy.release(channel, address);
 		} catch (Exception e) {
+			futureResponse.setDone(true);
 			futureResponse.setSuccess(false);
 			futureResponse.setError(e);
 		}
 		return futureResponse;
-	}
-	
-	@Override
-	public RpcResponsePacket send(String address, RpcRequestPacket request) {
-		return null;
 	}
 	
 	@Override

@@ -31,17 +31,18 @@ public class RpcClientConfig {
         return new ServiceDiscovery(zkAddress);
     }
 
-    @Bean
-    public ExampleService exampleService(ServiceDiscovery discovery) {
-        RpcProxy<ExampleService> exampleServiceProxy = 
-            ProxyFactory.newProxy(serviceName, discovery, ExampleService.class, loadBalancerType, SerializerType.JSON);
-        return exampleServiceProxy.proxyInstance();
+    @Bean(destroyMethod = "finish")
+    public RpcProxy<ExampleService> exampleService(ServiceDiscovery discovery) {
+        return ProxyFactory.newProxy(serviceName, discovery, ExampleService.class, loadBalancerType, SerializerType.JSON);
+    }
+    
+    @Bean(destroyMethod = "finish")
+    public RpcProxy<ExampleService> asyncExampleService(ServiceDiscovery discovery) {
+        return ProxyFactory.newProxy(serviceName, discovery, ExampleService.class, loadBalancerType, SerializerType.JSON);
     }
     
 //    @Bean
-    public ExampleService exampleService() {
-        RpcProxy<ExampleService> exampleServiceProxy = 
-            ProxyFactory.newProxy(address, ExampleService.class, SerializerType.JSON);
-        return exampleServiceProxy.proxyInstance();
+    public RpcProxy<ExampleService> exampleService() {
+        return ProxyFactory.newProxy(address, ExampleService.class, SerializerType.JSON);
     }
 }

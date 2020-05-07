@@ -1,6 +1,7 @@
 package com.liugeng.rpcframework.rpcclient.client;
 
-import com.liugeng.rpcframework.rpcclient.network.RpcFutureResponse;
+import java.util.concurrent.Executor;
+
 import com.liugeng.rpcframework.rpcprotocal.model.RpcRequestPacket;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcResponsePacket;
 
@@ -12,7 +13,11 @@ public interface RpcClient {
 	
 	RpcResponsePacket send(RpcRequestPacket requestPacket);
 	
-	RpcFutureResponse asyncSend(RpcRequestPacket requestPacket);
+	void asyncSend(RpcRequestPacket requestPacket, RpcCallback callback, Executor executor);
 	
 	void stop();
+	
+	interface RpcCallback {
+		void receiveResult(Object result, Throwable error);	
+	}
 }
