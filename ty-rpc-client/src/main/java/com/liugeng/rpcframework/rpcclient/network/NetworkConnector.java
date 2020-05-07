@@ -9,8 +9,6 @@ import com.liugeng.rpcframework.rpcprotocal.model.RpcResponsePacket;
  */
 public interface NetworkConnector {
 	
-	void init();
-	
 	void destroy();
 	
 	RpcFutureResponse asyncSend(String address, RpcRequestPacket request);

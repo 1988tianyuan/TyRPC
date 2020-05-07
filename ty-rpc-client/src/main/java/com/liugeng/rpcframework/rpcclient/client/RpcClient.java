@@ -1,7 +1,5 @@
 package com.liugeng.rpcframework.rpcclient.client;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.liugeng.rpcframework.rpcclient.network.RpcFutureResponse;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcRequestPacket;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcResponsePacket;
@@ -15,4 +13,6 @@ public interface RpcClient {
 	RpcResponsePacket send(RpcRequestPacket requestPacket);
 	
 	RpcFutureResponse asyncSend(RpcRequestPacket requestPacket);
+	
+	void stop();
 }

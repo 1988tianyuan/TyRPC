@@ -28,11 +28,6 @@ public class NettyConnector implements NetworkConnector {
 	}
 	
 	@Override
-	public void init() {
-		
-	}
-	
-	@Override
 	public RpcFutureResponse asyncSend(String address, RpcRequestPacket request) {
 		RpcFutureResponse futureResponse = new NettyFutureResponse(request.getRequestId(), responseHolder);
 		try {

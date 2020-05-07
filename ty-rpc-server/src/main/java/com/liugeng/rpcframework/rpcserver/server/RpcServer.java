@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.liugeng.rpcframework.registry.ServiceRegister;
 import com.liugeng.rpcframework.rpcprotocal.codec.RpcCodecHandler;
+import com.liugeng.rpcframework.rpcprotocal.codec.Spliter;
 import com.liugeng.rpcframework.rpcprotocal.handler.RpcRequestHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -57,6 +58,7 @@ public class RpcServer {
                            @Override
                            protected void initChannel(NioSocketChannel channel) throws Exception {
                                ChannelPipeline pipeline = channel.pipeline();
+                               pipeline.addLast(new Spliter());
                                pipeline.addLast(new RpcCodecHandler());
                                pipeline.addLast(new RpcRequestHandler(serviceMap));
                            }

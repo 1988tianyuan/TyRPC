@@ -36,7 +36,7 @@ public abstract class AbstractRpcClient implements RpcClient {
             String hostAndPort = chooseAddress();
             RpcFutureResponse futureResponse = connector.asyncSend(hostAndPort, requestPacket);
             if (!futureResponse.isSuccess() && futureResponse.getError() != null) {
-                throw futureResponse.getError();
+                throw futureResponse.getError(); 
             }
             logger.info("send rpc request to rpc server, request class: {}, request method: {}, request id: {}",
                     requestPacket.getClassName(), requestPacket.getMethodName(), requestPacket.getRequestId());
@@ -44,6 +44,11 @@ public abstract class AbstractRpcClient implements RpcClient {
         } catch (Throwable e) {
             throw new RpcFrameworkException("exception during rpc request: " + requestPacket.getRequestId(), e);
         }
+    }
+    
+    @Override
+    public void stop() {
+        connector.destroy();
     }
     
     protected abstract String chooseAddress();
