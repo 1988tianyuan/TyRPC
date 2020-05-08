@@ -33,16 +33,17 @@ public class RpcClientConfig {
 
     @Bean(destroyMethod = "finish")
     public RpcProxy<ExampleService> exampleService(ServiceDiscovery discovery) {
-        return ProxyFactory.newProxy(serviceName, discovery, ExampleService.class, loadBalancerType, SerializerType.JSON);
+        return ProxyFactory.newSyncProxy(serviceName, discovery, ExampleService.class, loadBalancerType, SerializerType.JSON);
     }
     
     @Bean(destroyMethod = "finish")
-    public RpcProxy<ExampleService> asyncExampleService(ServiceDiscovery discovery) {
-        return ProxyFactory.newProxy(serviceName, discovery, ExampleService.class, loadBalancerType, SerializerType.JSON);
+    public RpcProxy<ExampleService> asyncExampleService() {
+        return ProxyFactory.newAsyncProxy(address, ExampleService.class, SerializerType.JSON,
+            (result, error) -> System.out.println("收到回复：" + result), null);
     }
     
 //    @Bean
     public RpcProxy<ExampleService> exampleService() {
-        return ProxyFactory.newProxy(address, ExampleService.class, SerializerType.JSON);
+        return ProxyFactory.newSyncProxy(address, ExampleService.class, SerializerType.JSON);
     }
 }

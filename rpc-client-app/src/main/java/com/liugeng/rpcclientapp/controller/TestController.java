@@ -1,6 +1,7 @@
 package com.liugeng.rpcclientapp.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.annotation.Resource;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,14 +11,12 @@ import com.liugeng.rpcframework.service.ExampleService;
 @RestController
 public class TestController {
 
-    @Autowired
-    private RpcProxy<ExampleService> proxy;
+    @Resource
+    private RpcProxy<ExampleService> asyncExampleService;
 
     @RequestMapping("/test")
-    public String get() {
-        ExampleService service = proxy.proxyInstance();
-        String result = service.doSomething("我是第一个", "我是第二个");
-        System.out.println("结果是： " + result);
-        return result;
+    public void get() {
+        ExampleService service = asyncExampleService.proxyInstance();
+        service.doSomething("我是第一个", "我是第二个");
     }
 }
