@@ -1,13 +1,13 @@
 package com.liugeng.rpcframework.rpcserverapp.config;
 
-import com.liugeng.rpcframework.registry.ServiceRegister;
-import com.liugeng.rpcframework.rpcserver.server.RpcServer;
-import com.liugeng.rpcframework.rpcserverapp.rpcserver.RpcServerInSpring;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+
+import com.liugeng.rpcframework.registry.ServiceRegister;
+import com.liugeng.rpcframework.registry.impl.ZkServiceRegister;
+import com.liugeng.rpcframework.rpcserver.server.RpcServer;
+import com.liugeng.rpcframework.rpcserverapp.rpcserver.RpcServerInSpring;
 
 @Configuration
 public class RpcConfig {
@@ -23,12 +23,12 @@ public class RpcConfig {
 
     @Bean
     public RpcServer rpcServer(ServiceRegister serviceRegister) {
-        return new RpcServerInSpring(rpcAddress, serviceRegister);
+        return new RpcServerInSpring(serviceName, rpcAddress, serviceRegister);
     }
 
     @Bean
     public ServiceRegister serviceRegister() {
-        return new ServiceRegister(zkAddress, serviceName);
+        return new ZkServiceRegister(zkAddress);
     }
 
 }

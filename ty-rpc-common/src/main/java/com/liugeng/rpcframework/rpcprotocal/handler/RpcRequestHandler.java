@@ -1,16 +1,16 @@
 package com.liugeng.rpcframework.rpcprotocal.handler;
 
+import java.lang.reflect.Method;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcRequestPacket;
 import com.liugeng.rpcframework.rpcprotocal.model.RpcResponsePacket;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Method;
-import java.util.Map;
 
 public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequestPacket> {
 
@@ -25,6 +25,7 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequestPac
     protected void channelRead0(ChannelHandlerContext ctx, RpcRequestPacket requestPacket) throws Exception{
         Preconditions.checkNotNull(serviceMap, "serviceMap is empty !");
         RpcResponsePacket responsePacket = new RpcResponsePacket();
+        responsePacket.setRequestId(requestPacket.getRequestId());
         String serviceName = requestPacket.getClassName();
         String methodName = requestPacket.getMethodName();
         Class<?>[] paramsTypes = requestPacket.getParamTypes();
@@ -35,9 +36,9 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequestPac
             logger.info("service: {} is being called...", serviceName);
             Method method = serviceBean.getClass().getMethod(methodName, paramsTypes);
             Object result = method.invoke(serviceBean, params);
-            responsePacket.setRequestId(requestPacket.getRequestId());
             responsePacket.setResult(result);
         } catch (Exception e) {
+            responsePacket.setError(e);
             logger.error("error during handle rpc request", e);
         }
         ctx.channel().writeAndFlush(responsePacket);

@@ -25,12 +25,14 @@ public class RpcServer {
 
     protected final ConcurrentHashMap<String, Object> serviceMap = new ConcurrentHashMap<>();
     private String rpcAddress;
+    private String serviceName;
     private ServiceRegister serviceRegister;
     private NioEventLoopGroup bossGroup;
     private NioEventLoopGroup workerGroup;
 
-    public RpcServer(String rpcAddress, ServiceRegister serviceRegister) {
+    public RpcServer(String serviceName, String rpcAddress, ServiceRegister serviceRegister) {
         this.rpcAddress = rpcAddress;
+        this.serviceName = serviceName;
         this.serviceRegister = serviceRegister;
     }
 
@@ -66,29 +68,30 @@ public class RpcServer {
                        });
 
         serverBootstrap.bind(host, port).addListener(future -> {
-            if(future.isSuccess()){
+            if (future.isSuccess()) {
                 logger.info("RPC服务器启动成功, host：{}，端口号：{}", host, port);
                 serviceRegistry();
-            }else {
+            } else {
                 logger.warn("RPC服务器启动失败！host：{}，端口号：{}", host, port);
             }
         });
     }
 
-    private void serviceRegistry() {
+    private void serviceRegistry() throws InterruptedException {
         Preconditions.checkNotNull(serviceRegister, "serviceRegister should not be null !");
-        serviceRegister.register(rpcAddress);
+        serviceRegister.register(serviceName, rpcAddress);
         for(;;) {
-            if (serviceRegister.isConnect()) {
+            if (serviceRegister.isRegistered()) {
                 logger.info("服务注册成功！地址：{}", rpcAddress);
                 break;
             }
+            Thread.sleep(1000);
         }
     }
 
     public void shutDown() {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
-        serviceRegister.stopZkClient();
+        serviceRegister.deregister();
     }
 }

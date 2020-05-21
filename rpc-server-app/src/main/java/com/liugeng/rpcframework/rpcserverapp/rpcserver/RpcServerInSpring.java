@@ -1,20 +1,21 @@
 package com.liugeng.rpcframework.rpcserverapp.rpcserver;
 
-import com.liugeng.rpcframework.registry.ServiceRegister;
-import com.liugeng.rpcframework.rpcserver.annotation.RpcService;
-import com.liugeng.rpcframework.rpcserver.server.RpcServer;
+import java.util.Map;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.util.Map;
+import com.liugeng.rpcframework.registry.ServiceRegister;
+import com.liugeng.rpcframework.rpcserver.annotation.RpcService;
+import com.liugeng.rpcframework.rpcserver.server.RpcServer;
 
 public class RpcServerInSpring extends RpcServer implements ApplicationContextAware, InitializingBean, DisposableBean{
 
-    public RpcServerInSpring(String rpcAddress, ServiceRegister serviceRegister) {
-        super(rpcAddress, serviceRegister);
+    public RpcServerInSpring(String serviceName, String rpcAddress, ServiceRegister serviceRegister) {
+        super(serviceName, rpcAddress, serviceRegister);
     }
 
     @Override
