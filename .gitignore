@@ -11,3 +11,4 @@ gen
 target
 logs
 .mvn
+lsp

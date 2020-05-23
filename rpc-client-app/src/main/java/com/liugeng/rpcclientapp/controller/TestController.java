@@ -12,11 +12,11 @@ import com.liugeng.rpcframework.service.ExampleService;
 public class TestController {
 
     @Resource
-    private RpcProxy<ExampleService> asyncExampleService;
+    private RpcProxy<ExampleService> exampleService;
 
     @RequestMapping("/test")
-    public void get() {
-        ExampleService service = asyncExampleService.proxyInstance();
-        service.doSomething("我是第一个", "我是第二个");
+    public String get() {
+        ExampleService service = exampleService.proxyInstance();
+        return service.doSomething("我是第一个", "我是第二个");
     }
 }

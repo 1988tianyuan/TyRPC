@@ -39,7 +39,14 @@ public class RpcClientConfig {
     @Bean(destroyMethod = "finish")
     public RpcProxy<ExampleService> asyncExampleService() {
         return ProxyFactory.newAsyncProxy(address, ExampleService.class, SerializerType.JSON,
-            (result, error) -> System.out.println("收到回复：" + result), null);
+            (result, error) -> {
+                if (error != null) {
+                    System.out.println("产生异常");
+                    error.printStackTrace();
+                } else {
+                    System.out.println("收到回复：" + result);
+                }
+            }, null);
     }
     
 //    @Bean
