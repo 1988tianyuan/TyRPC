@@ -1,5 +1,7 @@
 package com.liugeng.rpcframework.rpcclient.network.netty;
 
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +33,12 @@ public class NettyConnector implements NetworkConnector {
 		RpcFutureResponse futureResponse = new RpcFutureResponse(request.getRequestId(), responseHolder);
 		try {
 			Channel channel = connectionManageStrategy.getConnection(address);
-			channel.writeAndFlush(request).sync();
+			channel.writeAndFlush(request).sync().addListener(new GenericFutureListener<Future<? super Void>>() {
+				@Override
+				public void operationComplete(Future<? super Void> future) throws Exception {
+					System.out.println("是否发送成功：" + future.isSuccess());
+				}
+			});
 			connectionManageStrategy.release(channel, address);
 		} catch (Exception e) {
 			futureResponse.setDone(true);

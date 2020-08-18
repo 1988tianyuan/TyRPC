@@ -1,6 +1,8 @@
 package com.liugeng.rpcframework.rpcserver.server;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +38,7 @@ public class RpcServer {
         this.serviceRegister = serviceRegister;
     }
 
-    public void startServer() {
+    public void startServer() throws InterruptedException {
         Preconditions.checkNotNull(rpcAddress, "rpcAddress should not be null !");
         String[] hostAndPort = rpcAddress.split(":");
         String host = hostAndPort[0];
@@ -67,7 +69,7 @@ public class RpcServer {
                            }
                        });
 
-        serverBootstrap.bind(host, port).addListener(future -> {
+        serverBootstrap.bind(host, port).sync().addListener(future -> {
             if (future.isSuccess()) {
                 logger.info("RPC服务器启动成功, host：{}，端口号：{}", host, port);
                 serviceRegistry();
@@ -77,16 +79,21 @@ public class RpcServer {
         });
     }
 
-    private void serviceRegistry() throws InterruptedException {
+    /* 循环注册当前服务，需要循环异步检查注册状态 */
+    private void serviceRegistry() {
         Preconditions.checkNotNull(serviceRegister, "serviceRegister should not be null !");
-        serviceRegister.register(serviceName, rpcAddress);
-        for(;;) {
-            if (serviceRegister.isRegistered()) {
-                logger.info("服务注册成功！地址：{}", rpcAddress);
-                break;
+        workerGroup.submit(() -> {
+            serviceRegister.register(serviceName, rpcAddress, true);
+            while (!serviceRegister.isRegistered()) {
+                logger.warn("服务注册失败，隔1秒再进行检查，注册地址：{}", rpcAddress);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    return;
+                }
             }
-            Thread.sleep(1000);
-        }
+            logger.info("服务注册成功，注册地址：{}", rpcAddress);
+        });
     }
 
     public void shutDown() {

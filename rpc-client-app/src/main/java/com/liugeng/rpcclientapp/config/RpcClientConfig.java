@@ -31,7 +31,7 @@ public class RpcClientConfig {
         return new ServiceDiscovery(zkAddress);
     }
 
-    @Bean(destroyMethod = "finish")
+//    @Bean(destroyMethod = "finish")
     public RpcProxy<ExampleService> exampleService(ServiceDiscovery discovery) {
         return ProxyFactory.newSyncProxy(serviceName, discovery, ExampleService.class, loadBalancerType, SerializerType.JSON);
     }

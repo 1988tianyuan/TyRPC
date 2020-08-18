@@ -19,16 +19,16 @@ public class ZkServiceRegister implements ServiceRegister {
 
     public ZkServiceRegister(String zkAddress) {
         this.zkClient = CuratorFrameworkFactory.newClient(zkAddress, new ExponentialBackoffRetry(1000, 3));
+        this.zkClient.start();
     }
     
     @Override
-    public void register(String serviceName, String registerAddress) {
+    public void register(String serviceName, String registerAddress, boolean retry) {
         Preconditions.checkNotNull(serviceName, "serviceName should not be null !");
-        this.zkClient.start();
         registerService(serviceName, registerAddress);
         this.zkClient.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
             boolean isConnect = connectionState.isConnected();
-            if (isConnect && !registered) {
+            if (retry && isConnect && !registered) {
                 // retry register to zk
                 registerService(serviceName, registerAddress);
             } else {

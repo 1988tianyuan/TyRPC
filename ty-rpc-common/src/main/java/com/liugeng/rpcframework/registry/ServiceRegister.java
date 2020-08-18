@@ -6,7 +6,7 @@ package com.liugeng.rpcframework.registry;
  */
 public interface ServiceRegister {
 	
-	void register(String serviceName, String registerAddress);
+	void register(String serviceName, String registerAddress, boolean retry);
 	
 	void deregister();
 	
