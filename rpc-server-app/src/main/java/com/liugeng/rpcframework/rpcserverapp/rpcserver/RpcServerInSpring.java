@@ -24,7 +24,7 @@ public class RpcServerInSpring extends RpcServer implements ApplicationContextAw
         if (!serviceBeanMap.isEmpty()) {
             for (Object serviceBean : serviceBeanMap.values()) {
                 String serviceName = serviceBean.getClass().getAnnotation(RpcService.class).value().getName();
-                serviceMap.put(serviceName, serviceBean);
+                loadService(serviceName, serviceBean);
             }
         }
         logger.info("服务初始化完成，其中可调用的服务有：" + serviceMap.keySet());

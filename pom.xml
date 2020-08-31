@@ -12,6 +12,8 @@
         <module>ty-rpc-server</module>
         <module>ty-rpc-common</module>
         <module>ty-rpc-client</module>
+        <module>ty-rpc-example</module>
+        <module>ty-rpc-server-example</module>
     </modules>
     
     <dependencyManagement>

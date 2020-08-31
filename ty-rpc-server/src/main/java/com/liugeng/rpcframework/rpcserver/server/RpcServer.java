@@ -1,18 +1,12 @@
 package com.liugeng.rpcframework.rpcserver.server;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.liugeng.rpcframework.registry.ServiceRegister;
 import com.liugeng.rpcframework.rpcprotocal.codec.RpcCodecHandler;
 import com.liugeng.rpcframework.rpcprotocal.codec.Spliter;
 import com.liugeng.rpcframework.rpcprotocal.handler.RpcRequestHandler;
 import com.liugeng.rpcframework.rpcprotocal.serializer.SerializerType;
+import com.liugeng.rpcframework.rpcserver.annotation.RpcService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -20,6 +14,11 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RpcServer {
 
@@ -72,7 +71,9 @@ public class RpcServer {
         serverBootstrap.bind(host, port).sync().addListener(future -> {
             if (future.isSuccess()) {
                 logger.info("RPC服务器启动成功, host：{}，端口号：{}", host, port);
-                serviceRegistry();
+                if (serviceRegister != null) {
+                    serviceRegistry();
+                }
             } else {
                 logger.warn("RPC服务器启动失败！host：{}，端口号：{}", host, port);
             }
@@ -81,8 +82,8 @@ public class RpcServer {
 
     /* 循环注册当前服务，需要循环异步检查注册状态 */
     private void serviceRegistry() {
-        Preconditions.checkNotNull(serviceRegister, "serviceRegister should not be null !");
         workerGroup.submit(() -> {
+            logger.info("开始注册服务，服务名：{}, 注册地址：{}", serviceName, rpcAddress);
             serviceRegister.register(serviceName, rpcAddress, true);
             while (!serviceRegister.isRegistered()) {
                 logger.warn("服务注册失败，隔1秒再进行检查，注册地址：{}", rpcAddress);
@@ -100,5 +101,24 @@ public class RpcServer {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
         serviceRegister.deregister();
+    }
+
+    public void loadService(Class<?> serviceImpl) {
+        RpcService annotation = serviceImpl.getAnnotation(RpcService.class);
+        if (annotation != null) {
+            Class<?> serviceType = annotation.value();
+            String name = serviceType.getName();
+            // 调用默认构造函数
+            try {
+                loadService(name, serviceImpl.getConstructor().newInstance());
+            } catch (InstantiationException | IllegalAccessException |
+                    InvocationTargetException | NoSuchMethodException e) {
+                logger.error("Failed to load serviceImpl:{}", name, e);
+            }
+        }
+    }
+
+    public void loadService(String name, Object serviceInstance) {
+        serviceMap.put(name, serviceInstance);
     }
 }
